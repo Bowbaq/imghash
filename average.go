@@ -19,18 +19,15 @@ import "image"
 // because the colors move along a non-linear scale -- changing where the
 // "average" is located and therefore changing which bits are above/below the
 // average.
-type Average struct{}
-
-// Compute computes a Perceptual Hash for the given image.
-func (h Average) Compute(img image.Image) uint64 {
+func Average(img image.Image) uint64 {
 	img = resize(img, 8, 8)
 	img = grayscale(img)
-	mean := h.computeMean(img)
-	return h.computeHash(img, mean)
+	mean := avg_computeMean(img)
+	return avg_computeHash(img, mean)
 }
 
-// computeMean computes the mean of all pixels.
-func (Average) computeMean(img image.Image) uint32 {
+// avg_computeMean computes the mean of all pixels.
+func avg_computeMean(img image.Image) uint32 {
 	var x, y int
 	var r, m uint32
 
@@ -53,10 +50,10 @@ func (Average) computeMean(img image.Image) uint32 {
 	return m / c
 }
 
-// computeHash computes the hash bits for the given image and mean.
+// avg_computeHash computes the hash bits for the given image and mean.
 // It sets individual bits in a 64-bit integer. A bit is set of the
 // pixel value is larger than the mean.
-func (Average) computeHash(img image.Image, mean uint32) uint64 {
+func avg_computeHash(img image.Image, mean uint32) uint64 {
 	var x, y int
 	var value, bit uint64
 	var r uint32

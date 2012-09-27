@@ -3,8 +3,7 @@
 
 /*
 imghash computes the Perceptual Hash for a given input image.
-It supports PNG, GIF and JPEG. The Perceptual Hash is returned
-as a 64 bit integer.
+The Perceptual Hash is returned as a 64 bit integer.
 
 Comparing two images can be done by constructing the hash from each image
 and counting the number of bit positions that are different. This is a

@@ -5,8 +5,6 @@ package imghash
 
 import (
 	"image"
-	_ "image/gif"
-	_ "image/jpeg"
 	_ "image/png"
 	"os"
 	"testing"
@@ -16,9 +14,8 @@ import (
 const MaxDistance = 3
 
 func TestAverage(t *testing.T) {
-	var avg Average
-	a := getHash(t, avg, "testdata/gopher_large.png")
-	b := getHash(t, avg, "testdata/gopher_small.png")
+	a := getHash(t, Average, "testdata/gopher_large.png")
+	b := getHash(t, Average, "testdata/gopher_small.png")
 
 	dist := Distance(a, b)
 	if dist >= MaxDistance {
@@ -26,7 +23,7 @@ func TestAverage(t *testing.T) {
 	}
 }
 
-func getHash(t *testing.T, h Hasher, file string) uint64 {
+func getHash(t *testing.T, hf HashFunc, file string) uint64 {
 	fd, err := os.Open(file)
 	if err != nil {
 		t.Fatal(err)
@@ -39,5 +36,5 @@ func getHash(t *testing.T, h Hasher, file string) uint64 {
 		t.Fatal(err)
 	}
 
-	return h.Compute(img)
+	return hf(img)
 }

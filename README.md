@@ -1,8 +1,7 @@
 ## imghash
 
 imghash computes the Perceptual Hash for a given input image.
-It supports PNG, GIF and JPEG. The Perceptual Hash is returned
-as a 64 bit integer.
+The Perceptual Hash is returned as a 64 bit integer.
 
 This is an implementation of an article on [hackerfactor.com][hf].
 

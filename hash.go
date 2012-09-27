@@ -5,10 +5,8 @@ package imghash
 
 import "image"
 
-// A Hasher computes a Perceptual Hash for a given image.
-type Hasher interface {
-	Compute(image.Image) uint64
-}
+// A HashFunc computes a Perceptual Hash for a given image.
+type HashFunc func(image.Image) uint64
 
 // Distance calculates the Hamming Distance between the two input hashes.
 func Distance(a, b uint64) int {
