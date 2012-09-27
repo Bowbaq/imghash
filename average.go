@@ -14,6 +14,7 @@ import "image"
 // if the big one exists somewhere in our collection. Average Hash will find
 // it very quickly. However, if there are modifications -- like text was added
 // or a head was spliced into place, then Average Hash probably won't do the job.
+//
 // The Average Hash is quick and easy, but it can generate false-misses if
 // gamma correction or color histogram is applied to the image. This is
 // because the colors move along a non-linear scale -- changing where the
@@ -22,12 +23,12 @@ import "image"
 func Average(img image.Image) uint64 {
 	img = resize(img, 8, 8)
 	img = grayscale(img)
-	mean := avg_computeMean(img)
-	return avg_computeHash(img, mean)
+	mean := avgMean(img)
+	return avgHash(img, mean)
 }
 
-// avg_computeMean computes the mean of all pixels.
-func avg_computeMean(img image.Image) uint32 {
+// avgMean computes the mean of all pixels.
+func avgMean(img image.Image) uint32 {
 	var x, y int
 	var r, m uint32
 
@@ -50,10 +51,10 @@ func avg_computeMean(img image.Image) uint32 {
 	return m / c
 }
 
-// avg_computeHash computes the hash bits for the given image and mean.
+// avgHash computes the hash bits for the given image and mean.
 // It sets individual bits in a 64-bit integer. A bit is set of the
 // pixel value is larger than the mean.
-func avg_computeHash(img image.Image, mean uint32) uint64 {
+func avgHash(img image.Image, mean uint32) uint64 {
 	var x, y int
 	var value, bit uint64
 	var r uint32
