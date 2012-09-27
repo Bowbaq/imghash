@@ -85,35 +85,41 @@ func resize(m image.Image, w, h int) image.Image {
 	// would become more complicated.
 	n, sum := dx*dy, make([]uint64, 4*w*h)
 
-	for y := r.Min.Y; y < r.Max.Y; y++ {
-		for x := r.Min.X; x < r.Max.X; x++ {
+	var x, y int
+	var r32, g32, b32, a32 uint32
+	var r64, g64, b64, a64, remx, remy, index uint64
+	var py, px, qx, qy uint64
+
+	for y = r.Min.Y; y < r.Max.Y; y++ {
+		for x = r.Min.X; x < r.Max.X; x++ {
 			// Get the source pixel.
-			r32, g32, b32, a32 := m.At(x, y).RGBA()
-			r64 := uint64(r32)
-			g64 := uint64(g32)
-			b64 := uint64(b32)
-			a64 := uint64(a32)
+			r32, g32, b32, a32 = m.At(x, y).RGBA()
+			r64 = uint64(r32)
+			g64 = uint64(g32)
+			b64 = uint64(b32)
+			a64 = uint64(a32)
 
 			// Spread the source pixel over 1 or more destination rows.
-			py := uint64(y) * hh
-			for remy := hh; remy > 0; {
-				qy := dy - (py % dy)
+			py = uint64(y) * hh
+			for remy = hh; remy > 0; {
+				qy = dy - (py % dy)
 
 				if qy > remy {
 					qy = remy
 				}
-				// Spread the source pixel over 1 or more destination columns.
-				px := uint64(x) * ww
-				index := 4 * ((py/dy)*ww + (px / dx))
 
-				for remx := ww; remx > 0; {
-					qx := dx - (px % dx)
+				// Spread the source pixel over 1 or more destination columns.
+				px = uint64(x) * ww
+				index = 4 * ((py/dy)*ww + (px / dx))
+
+				for remx = ww; remx > 0; {
+					qx = dx - (px % dx)
 
 					if qx > remx {
 						qx = remx
 					}
 
-					sum[index+0] += r64 * qx * qy
+					sum[index] += r64 * qx * qy
 					sum[index+1] += g64 * qx * qy
 					sum[index+2] += b64 * qx * qy
 					sum[index+3] += a64 * qx * qy
@@ -135,11 +141,12 @@ func resize(m image.Image, w, h int) image.Image {
 func average(sum []uint64, w, h int, n uint64) image.Image {
 	ret := image.NewRGBA(image.Rect(0, 0, w, h))
 
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			index := 4 * (y*w + x)
+	var x, y, index int
+	for y = 0; y < h; y++ {
+		for x = 0; x < w; x++ {
+			index = 4 * (y*w + x)
 			ret.SetRGBA(x, y, color.RGBA{
-				uint8(sum[index+0] / n),
+				uint8(sum[index] / n),
 				uint8(sum[index+1] / n),
 				uint8(sum[index+2] / n),
 				uint8(sum[index+3] / n),
@@ -169,40 +176,48 @@ func resizeYCbCr(m *image.YCbCr, r image.Rectangle, w, h int) (image.Image, bool
 
 	// See comment in Resize.
 	n, sum := dx*dy, make([]uint64, 4*w*h)
-	for y := r.Min.Y; y < r.Max.Y; y++ {
-		Y := m.Y[y*m.YStride:]
-		Cb := m.Cb[y/verticalRes*m.CStride:]
-		Cr := m.Cr[y/verticalRes*m.CStride:]
 
-		for x := r.Min.X; x < r.Max.X; x++ {
+	var x, y int
+	var r8, g8, b8 uint8
+	var r64, g64, b64, remx, remy, index uint64
+	var py, px, qx, qy, qxy uint64
+	var Y, Cb, Cr []uint8
+
+	for y = r.Min.Y; y < r.Max.Y; y++ {
+		Y = m.Y[y*m.YStride:]
+		Cb = m.Cb[y/verticalRes*m.CStride:]
+		Cr = m.Cr[y/verticalRes*m.CStride:]
+
+		for x = r.Min.X; x < r.Max.X; x++ {
 			// Get the source pixel.
-			r8, g8, b8 := color.YCbCrToRGB(Y[x], Cb[x/2], Cr[x/2])
-			r64 := uint64(r8)
-			g64 := uint64(g8)
-			b64 := uint64(b8)
+			r8, g8, b8 = color.YCbCrToRGB(Y[x], Cb[x/2], Cr[x/2])
+			r64 = uint64(r8)
+			g64 = uint64(g8)
+			b64 = uint64(b8)
 
 			// Spread the source pixel over 1 or more destination rows.
-			py := uint64(y) * hh
+			py = uint64(y) * hh
 
-			for remy := hh; remy > 0; {
-				qy := dy - (py % dy)
+			for remy = hh; remy > 0; {
+				qy = dy - (py % dy)
+
 				if qy > remy {
 					qy = remy
 				}
 
 				// Spread the source pixel over 1 or more destination columns.
-				px := uint64(x) * ww
-				index := 4 * ((py/dy)*ww + (px / dx))
+				px = uint64(x) * ww
+				index = 4 * ((py/dy)*ww + (px / dx))
 
-				for remx := ww; remx > 0; {
-					qx := dx - (px % dx)
+				for remx = ww; remx > 0; {
+					qx = dx - (px % dx)
 
 					if qx > remx {
 						qx = remx
 					}
 
-					qxy := qx * qy
-					sum[index+0] += r64 * qxy
+					qxy = qx * qy
+					sum[index] += r64 * qxy
 					sum[index+1] += g64 * qxy
 					sum[index+2] += b64 * qxy
 					sum[index+3] += 0xFFFF * qxy
@@ -229,40 +244,45 @@ func resizeRGBA(m *image.RGBA, r image.Rectangle, w, h int) image.Image {
 	// See comment in Resize.
 	n, sum := dx*dy, make([]uint64, 4*w*h)
 
-	for y := r.Min.Y; y < r.Max.Y; y++ {
-		pixOffset := m.PixOffset(r.Min.X, y)
+	var x, y int
+	var pixOffset int
+	var r64, g64, b64, a64, remx, remy, index uint64
+	var py, px, qx, qy, qxy uint64
 
-		for x := r.Min.X; x < r.Max.X; x++ {
+	for y = r.Min.Y; y < r.Max.Y; y++ {
+		pixOffset = m.PixOffset(r.Min.X, y)
+
+		for x = r.Min.X; x < r.Max.X; x++ {
 			// Get the source pixel.
-			r64 := uint64(m.Pix[pixOffset+0])
-			g64 := uint64(m.Pix[pixOffset+1])
-			b64 := uint64(m.Pix[pixOffset+2])
-			a64 := uint64(m.Pix[pixOffset+3])
+			r64 = uint64(m.Pix[pixOffset+0])
+			g64 = uint64(m.Pix[pixOffset+1])
+			b64 = uint64(m.Pix[pixOffset+2])
+			a64 = uint64(m.Pix[pixOffset+3])
 			pixOffset += 4
 
 			// Spread the source pixel over 1 or more destination rows.
-			py := uint64(y) * hh
+			py = uint64(y) * hh
 
-			for remy := hh; remy > 0; {
-				qy := dy - (py % dy)
+			for remy = hh; remy > 0; {
+				qy = dy - (py % dy)
 
 				if qy > remy {
 					qy = remy
 				}
 
 				// Spread the source pixel over 1 or more destination columns.
-				px := uint64(x) * ww
-				index := 4 * ((py/dy)*ww + (px / dx))
+				px = uint64(x) * ww
+				index = 4 * ((py/dy)*ww + (px / dx))
 
-				for remx := ww; remx > 0; {
-					qx := dx - (px % dx)
+				for remx = ww; remx > 0; {
+					qx = dx - (px % dx)
 
 					if qx > remx {
 						qx = remx
 					}
 
-					qxy := qx * qy
-					sum[index+0] += r64 * qxy
+					qxy = qx * qy
+					sum[index] += r64 * qxy
 					sum[index+1] += g64 * qxy
 					sum[index+2] += b64 * qxy
 					sum[index+3] += a64 * qxy

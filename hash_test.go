@@ -4,6 +4,7 @@
 package imghash
 
 import (
+	"fmt"
 	"image"
 	_ "image/png"
 	"os"
@@ -18,6 +19,8 @@ func TestAverage(t *testing.T) {
 	b := getHash(t, Average, "testdata/gopher_small.png")
 
 	dist := Distance(a, b)
+	fmt.Printf("0x%x 0x%x %d\n", a, b, dist)
+
 	if dist >= MaxDistance {
 		t.Fatalf("Hash mismatch: %d", dist)
 	}
