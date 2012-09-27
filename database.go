@@ -21,6 +21,9 @@ type Entry struct {
 
 // A Database holds a listing of Perceptual hashes, mapped
 // to image file paths.
+//
+// Note: This is a very naive implementation that can benefit
+// a great deal from optimization.
 type Database struct {
 	Root    string   // Database root path.
 	Entries []*Entry // List of entries.
@@ -29,33 +32,6 @@ type Database struct {
 // NewDatabase creates a new, empty database.
 func NewDatabase() *Database {
 	return new(Database)
-}
-
-// Set adds the given file if it doesn't already exist.
-// Otherwise it overwrites the existing one.
-func (d *Database) Set(file string, modtime int64, hash uint64) {
-	index := d.IndexFile(file)
-
-	if index == -1 {
-		d.Entries = append(d.Entries, &Entry{file, hash, modtime})
-		return
-	}
-
-	f := d.Entries[index]
-	f.ModTime = modtime
-	f.Hash = hash
-}
-
-// IsNew returns true if the given file has been updated
-// since it was last stored in the database.
-func (d *Database) IsNew(file string, modtime int64) bool {
-	index := d.IndexFile(file)
-
-	if index == -1 {
-		return true
-	}
-
-	return d.Entries[index].ModTime != modtime
 }
 
 // Load loads a database from the given file.
@@ -119,6 +95,34 @@ func (d *Database) Save(file string) (err error) {
 	}
 
 	return
+}
+
+// Set adds the given file if it doesn't already exist.
+// Otherwise it overwrites the existing one.
+func (d *Database) Set(file string, modtime int64, hash uint64) {
+	index := d.IndexFile(file)
+
+	if index == -1 {
+		d.Entries = append(d.Entries, &Entry{file, hash, modtime})
+		return
+	}
+
+	f := d.Entries[index]
+	f.ModTime = modtime
+	f.Hash = hash
+}
+
+// IsNew returns true if the given file has been updated
+// since it was last stored in the database.
+func (d *Database) IsNew(file string, modtime int64) bool {
+	index := d.IndexFile(file)
+
+	if index == -1 {
+		// Non-existant entry is always new.
+		return true
+	}
+
+	return d.Entries[index].ModTime != modtime
 }
 
 // IndexFile returns the index for the given file.
