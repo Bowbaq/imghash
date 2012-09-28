@@ -52,7 +52,7 @@ func avgMean(img image.Image) uint32 {
 }
 
 // avgHash computes the hash bits for the given image and mean.
-// It sets individual bits in a 64-bit integer. A bit is set of the
+// It sets individual bits in a 64-bit integer. A bit is set if the
 // pixel value is larger than the mean.
 func avgHash(img image.Image, mean uint32) uint64 {
 	var x, y int
