@@ -74,8 +74,11 @@ func resize(m image.Image, w, h int) image.Image {
 	var r64, g64, b64, a64, remx, remy, index uint64
 	var py, px, qx, qy uint64
 
-	for y = r.Min.Y; y < r.Max.Y; y++ {
-		for x = r.Min.X; x < r.Max.X; x++ {
+	minx, miny := r.Min.X, r.Min.Y
+	maxx, maxy := r.Max.X, r.Max.Y
+
+	for y = miny; y < maxy; y++ {
+		for x = minx; x < maxx; x++ {
 			// Get the source pixel.
 			r32, g32, b32, a32 = m.At(x, y).RGBA()
 			r64 = uint64(r32)
@@ -145,12 +148,15 @@ func resizeYCbCr(m *image.YCbCr, r image.Rectangle, w, h int) (image.Image, bool
 	var py, px, qx, qy, qxy uint64
 	var Y, Cb, Cr []uint8
 
-	for y = r.Min.Y; y < r.Max.Y; y++ {
+	minx, miny := r.Min.X, r.Min.Y
+	maxx, maxy := r.Max.X, r.Max.Y
+
+	for y = miny; y < maxy; y++ {
 		Y = m.Y[y*m.YStride:]
 		Cb = m.Cb[y/verticalRes*m.CStride:]
 		Cr = m.Cr[y/verticalRes*m.CStride:]
 
-		for x = r.Min.X; x < r.Max.X; x++ {
+		for x = minx; x < maxx; x++ {
 			// Get the source pixel.
 			r8, g8, b8 = color.YCbCrToRGB(Y[x], Cb[x/2], Cr[x/2])
 			r64 = uint64(r8)
@@ -209,10 +215,13 @@ func resizeRGBA(m *image.RGBA, r image.Rectangle, w, h int) image.Image {
 	var r64, g64, b64, a64, remx, remy, index uint64
 	var py, px, qx, qy, qxy uint64
 
-	for y = r.Min.Y; y < r.Max.Y; y++ {
-		pixOffset = m.PixOffset(r.Min.X, y)
+	minx, miny := r.Min.X, r.Min.Y
+	maxx, maxy := r.Max.X, r.Max.Y
 
-		for x = r.Min.X; x < r.Max.X; x++ {
+	for y = miny; y < maxy; y++ {
+		pixOffset = m.PixOffset(minx, y)
+
+		for x = minx; x < maxx; x++ {
 			// Get the source pixel.
 			r64 = uint64(m.Pix[pixOffset+0])
 			g64 = uint64(m.Pix[pixOffset+1])
