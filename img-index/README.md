@@ -9,7 +9,10 @@ This command should be run at least once before using `index-find`.
 After that, one should run it whenever the images in the given path
 change or new ones are added. This is kept separate from `img-find`,
 because it takes a while to hash large libraries. Specially with
-large image files.
+large image files. The tool is smart enough not to re-calculate hashes
+for files which have not changed. So repeatedly running the tool over
+the same set of files, will only update those files which have been
+altered since the last time it was run.
 
 
 ## Database

@@ -1,13 +1,12 @@
 ## imghash
 
 imghash computes the Perceptual Hash for a given input image.
-The Perceptual Hash is returned as a 64 bit integer.
+The hash is returned as a 64 bit integer. It comes with two commandline
+tools: `img-index` and `img-find`. Refer to their respective READMEs for
+information on what they do.
 
-It comes with two commandline tools: `img-index` and `img-find`.
-Refer to their respective READMEs for information on what they do.
-
-Note that this toolset is mainly for educational purposes on my end.
-It is an implementation of an article on [hackerfactor.com][hf].
+Note that this toolset is mainly for educational purposes on my part.
+It is a partial implementation of an article on [hackerfactor.com][hf].
 
 [hf]: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
 
