@@ -24,6 +24,25 @@ func grayscale(img image.Image) image.Image {
 	return gray
 }
 
+// average converts the sums to averages and returns the result.
+func average(sum []uint64, w, h int, n uint64) image.Image {
+	ret := image.NewRGBA(image.Rect(0, 0, w, h))
+	pix := ret.Pix
+
+	var x, y, idx int
+	for y = 0; y < h; y++ {
+		for x = 0; x < w; x++ {
+			idx = 4 * (y*w + x)
+			pix[idx] = uint8(sum[idx] / n)
+			pix[idx+1] = uint8(sum[idx+1] / n)
+			pix[idx+2] = uint8(sum[idx+2] / n)
+			pix[idx+3] = uint8(sum[idx+3] / n)
+		}
+	}
+
+	return ret
+}
+
 // resize returns a scaled copy of the image slice r of m.
 // The returned image has width w and height h.
 func resize(m image.Image, w, h int) image.Image {
@@ -48,41 +67,6 @@ func resize(m image.Image, w, h int) image.Image {
 
 	ww, hh := uint64(w), uint64(h)
 	dx, dy := uint64(r.Dx()), uint64(r.Dy())
-
-	// The scaling algorithm is to nearest-neighbor magnify the dx * dy source
-	// to a (ww*dx) * (hh*dy) intermediate image and then minify the intermediate
-	// image back down to a ww * hh destination with a simple box filter.
-	// The intermediate image is implied, we do not physically allocate a slice
-	// of length ww*dx*hh*dy.
-	//
-	// For example, consider a 4*3 source image. Label its pixels from a-l:
-	//
-	//      abcd
-	//      efgh
-	//      ijkl
-	//
-	// To resize this to a 3*2 destination image, the intermediate is 12*6.
-	// Whitespace has been added to delineate the destination pixels:
-	//
-	//      aaab bbcc cddd
-	//      aaab bbcc cddd
-	//      eeef ffgg ghhh
-	//
-	//      eeef ffgg ghhh
-	//      iiij jjkk klll
-	//      iiij jjkk klll
-	//
-	// Thus, the 'b' source pixel contributes one third of its value to the
-	// (0, 0) destination pixel and two thirds to (1, 0).
-	// The implementation is a two-step process. First, the source pixels are
-	// iterated over and each source pixel's contribution to 1 or more
-	// destination pixels are summed. Second, the sums are divided by a scaling
-	// factor to yield the destination pixels.
-	//
-	// TODO: By interleaving the two steps, instead of doing all of
-	// step 1 first and all of step 2 second, we could allocate a smaller sum
-	// slice of length 4*w*2 instead of 4*w*h, although the resultant code
-	// would become more complicated.
 	n, sum := dx*dy, make([]uint64, 4*w*h)
 
 	var x, y int
@@ -137,26 +121,6 @@ func resize(m image.Image, w, h int) image.Image {
 	return average(sum, w, h, n*0x0101)
 }
 
-// average converts the sums to averages and returns the result.
-func average(sum []uint64, w, h int, n uint64) image.Image {
-	ret := image.NewRGBA(image.Rect(0, 0, w, h))
-
-	var x, y, index int
-	for y = 0; y < h; y++ {
-		for x = 0; x < w; x++ {
-			index = 4 * (y*w + x)
-			ret.SetRGBA(x, y, color.RGBA{
-				uint8(sum[index] / n),
-				uint8(sum[index+1] / n),
-				uint8(sum[index+2] / n),
-				uint8(sum[index+3] / n),
-			})
-		}
-	}
-
-	return ret
-}
-
 // resizeYCbCr returns a scaled copy of the YCbCr image slice r of m.
 // The returned image has width w and height h.
 func resizeYCbCr(m *image.YCbCr, r image.Rectangle, w, h int) (image.Image, bool) {
@@ -173,8 +137,6 @@ func resizeYCbCr(m *image.YCbCr, r image.Rectangle, w, h int) (image.Image, bool
 
 	ww, hh := uint64(w), uint64(h)
 	dx, dy := uint64(r.Dx()), uint64(r.Dy())
-
-	// See comment in Resize.
 	n, sum := dx*dy, make([]uint64, 4*w*h)
 
 	var x, y int
@@ -240,8 +202,6 @@ func resizeYCbCr(m *image.YCbCr, r image.Rectangle, w, h int) (image.Image, bool
 func resizeRGBA(m *image.RGBA, r image.Rectangle, w, h int) image.Image {
 	ww, hh := uint64(w), uint64(h)
 	dx, dy := uint64(r.Dx()), uint64(r.Dy())
-
-	// See comment in Resize.
 	n, sum := dx*dy, make([]uint64, 4*w*h)
 
 	var x, y int
