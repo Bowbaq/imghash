@@ -9,8 +9,8 @@ import "image"
 type HashFunc func(image.Image) uint64
 
 // Distance calculates the Hamming Distance between the two input hashes.
-func Distance(a, b uint64) int {
-	var dist int
+func Distance(a, b uint64) uint {
+	var dist uint
 
 	for val := a ^ b; val != 0; val &= val - 1 {
 		dist++

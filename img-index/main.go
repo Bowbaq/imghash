@@ -47,7 +47,7 @@ func main() {
 	// Load database file.
 	if err := db.Load(*dbfile); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
-		return
+		// Do not quit here. The file may yet have to be created.
 	}
 
 	defer db.Save(*dbfile)
@@ -68,9 +68,10 @@ func main() {
 
 		switch strings.ToLower(path.Ext(file)) {
 		case ".png", ".jpg", ".jpeg", ".gif":
-			writeDB(file, stat.ModTime().Unix())
-			fileCount++
-			fileSize += uint64(stat.Size())
+			if writeDB(file, stat.ModTime().Unix()) {
+				fileCount++
+				fileSize += uint64(stat.Size())
+			}
 		}
 
 		return
@@ -84,29 +85,29 @@ func main() {
 
 // writeDB creates a hash for the given file and inserts/updates
 // the database with its info if necessary.
-func writeDB(file string, modtime int64) {
+func writeDB(file string, modtime int64) bool {
 	fmt.Printf("* %s\n", file)
 
 	sfile, err := filepath.Abs(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", file, err)
-		return
+		return false
 	}
 
 	sfile = strings.Replace(sfile, db.Root, "", 1)
 
 	if !db.IsNew(sfile, modtime) {
-		return
+		return false
 	}
 
 	hash, err := getHash(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %s\n", file, err)
-		return
+		return false
 	}
 
 	db.Set(sfile, modtime, hash)
-	return
+	return true
 }
 
 // getHash creates a perceptual hash for the given file.
@@ -147,10 +148,10 @@ func parseArgs() {
 
 	flag.Usage = func() {
 		fmt.Printf("Usage: %s [options] <directory path>\n\n", os.Args[0])
-		fmt.Printf("  -db : Location for the hash database. Alternatively, this can be set\n" +
-			"        in the IMGHASH_DB environment variable.\n")
-		fmt.Printf(" -cpu : File to write CPU profile to.\n")
-		fmt.Printf("   -v : Display version information.\n")
+		fmt.Printf("  -db: Location for the hash database. Alternatively, this can be set\n" +
+			"       in the IMGHASH_DB environment variable.\n")
+		fmt.Printf(" -cpu: File to write CPU profile to.\n")
+		fmt.Printf("   -v: Display version information.\n")
 	}
 
 	version := flag.Bool("v", false, "Display version information.")
@@ -173,14 +174,5 @@ func parseArgs() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
-	}
-
-	if len(*dbfile) == 0 {
-		*dbfile = os.Getenv("IMGHASH_DB")
-
-		if len(*dbfile) == 0 {
-			flag.Usage()
-			os.Exit(1)
-		}
 	}
 }

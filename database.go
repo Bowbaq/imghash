@@ -6,11 +6,28 @@ package imghash
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strconv"
 )
+
+// SearchResult is returned by Database.Find.
+// It holds a matching entry along with its Hamming Distance
+// to the supplied search term (input hash).
+type SearchResult struct {
+	Entry    *Entry
+	Distance uint
+}
+
+// ResultSet holds search results, sorted by Hamming Distance.
+type ResultSet []*SearchResult
+
+func (r ResultSet) Len() int           { return len(r) }
+func (r ResultSet) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
+func (r ResultSet) Less(i, j int) bool { return r[i].Distance < r[j].Distance }
 
 // Entry represents a single database entry.
 type Entry struct {
@@ -30,12 +47,34 @@ type Database struct {
 }
 
 // NewDatabase creates a new, empty database.
-func NewDatabase() *Database {
-	return new(Database)
+func NewDatabase() *Database { return new(Database) }
+
+// Find finds all entries which have a Hamming Diance <= to the
+// specified distance with the given hash.
+// The list is sorted by relevance.
+func (d *Database) Find(hash uint64, distance uint) ResultSet {
+	var rs ResultSet
+	var dist uint
+
+	for _, e := range d.Entries {
+		dist = Distance(e.Hash, hash)
+
+		if dist <= distance {
+			rs = append(rs, &SearchResult{e, dist})
+		}
+	}
+
+	sort.Sort(rs)
+	return rs
 }
 
 // Load loads a database from the given file.
+// Leave the filename empty to use the default file.
 func (d *Database) Load(file string) (err error) {
+	if len(file) == 0 {
+		file = os.Getenv("IMGHASH_DB")
+	}
+
 	fd, err := os.Open(file)
 	if err != nil {
 		return
@@ -48,10 +87,27 @@ func (d *Database) Load(file string) (err error) {
 	var line []byte
 	var entry *Entry
 
-	for {
-		line, err = r.ReadBytes('\n')
+	line, err = r.ReadBytes('\n')
+	if err != nil {
 		if err == io.EOF {
 			err = nil
+		}
+		return
+	}
+
+	line = bytes.TrimSpace(line)
+	if len(line) == 0 {
+		return errors.New("Invalid database file.")
+	}
+
+	d.Root = string(line)
+
+	for {
+		line, err = r.ReadBytes('\n')
+		if err != nil {
+			if err == io.EOF {
+				err = nil
+			}
 			return
 		}
 
@@ -80,7 +136,12 @@ func (d *Database) Load(file string) (err error) {
 }
 
 // Save saves the database to the given file.
+// Leave the filename empty to use the default file.
 func (d *Database) Save(file string) (err error) {
+	if len(file) == 0 {
+		file = os.Getenv("IMGHASH_DB")
+	}
+
 	fd, err := os.Create(file)
 	if err != nil {
 		return
