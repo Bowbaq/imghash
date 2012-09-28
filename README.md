@@ -3,19 +3,15 @@
 imghash computes the Perceptual Hash for a given input image.
 The Perceptual Hash is returned as a 64 bit integer.
 
-This is an implementation of an article on [hackerfactor.com][hf].
+It comes with two commandline tools: `img-index` and `img-find`.
+Refer to their respective READMEs for information on what they do.
 
-Comparing two images can be done by constructing the hash from each image
-and counting the number of bit positions that are different. This is a
-[Hamming distance][hd]. A distance of zero indicates that it is likely a very
-similar picture (or a variation of the same picture). A distance of 5 means a
-few things may be different, but they are probably still close enough to be
-similar. But a distance of 10 or more? That's probably a very different picture.
+Note that this toolset is mainly for educational purposes on my end.
+It is an implementation of an article on [hackerfactor.com][hf].
 
 [hf]: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
-[hd]: http://en.wikipedia.org/wiki/Hamming_distance
 
-The package supports the hashing modes:
+The package supports these hashing modes:
 
 * **Average**: Average Hash is a great algorithm if you are looking for
   something specific. For example, if we have a small thumbnail of an image
@@ -28,6 +24,7 @@ The package supports the hashing modes:
   changing where the "average" is located and therefore changing which bits
   are above/below the average.
 
+More may come at some point.
 
 ### Usage
 

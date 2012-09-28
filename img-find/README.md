@@ -1,10 +1,10 @@
 ## img-find
 
 img-find accepts the path to a single image.
-
 It constructs a Perceptual Hash for it and checks a hash database
 for any matches. It returns the filenames associated with these
 matches, sorted by relevance.
+
 
 ## Matches
 
