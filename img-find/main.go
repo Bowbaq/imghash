@@ -51,8 +51,7 @@ func main() {
 
 	// Display results.
 	for _, res := range results {
-		fmt.Printf("%d %s\n", res.Distance,
-			filepath.Join(db.Root, res.Entry.Path))
+		fmt.Printf("%d %s\n", res.Distance, filepath.Join(db.Root, res.Path))
 	}
 }
 

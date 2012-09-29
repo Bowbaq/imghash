@@ -15,11 +15,10 @@ import (
 )
 
 // SearchResult is returned by Database.Find.
-// It holds a matching entry along with its Hamming Distance
-// to the supplied search term (input hash).
 type SearchResult struct {
-	Entry    *Entry
-	Distance uint
+	Path     string // Image path, relative to Database.Root
+	Hash     uint64 // Perceptual Image hash.
+	Distance uint   // Hamming Distance to search term.
 }
 
 // ResultSet holds search results, sorted by Hamming Distance.
@@ -60,7 +59,11 @@ func (d *Database) Find(hash uint64, distance uint) ResultSet {
 		dist = Distance(e.Hash, hash)
 
 		if dist <= distance {
-			rs = append(rs, &SearchResult{e, dist})
+			rs = append(rs, &SearchResult{
+				Path:     e.Path,
+				Hash:     e.Hash,
+				Distance: dist,
+			})
 		}
 	}
 
