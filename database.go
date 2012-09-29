@@ -21,7 +21,7 @@ type SearchResult struct {
 	Distance uint   // Hamming Distance to search term.
 }
 
-// ResultSet holds search results, sorted by Hamming Distance.
+// ResultSet holds search results, sortable by Hamming Distance.
 type ResultSet []*SearchResult
 
 func (r ResultSet) Len() int           { return len(r) }
