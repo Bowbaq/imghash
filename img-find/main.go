@@ -17,7 +17,7 @@ import (
 
 var (
 	file   string
-	dist   = flag.Uint("dist", 5, "")
+	dist   = flag.Uint64("dist", 5, "")
 	dbfile = flag.String("db", "", "")
 )
 

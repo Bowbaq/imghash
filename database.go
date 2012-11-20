@@ -18,7 +18,7 @@ import (
 type SearchResult struct {
 	Path     string // Image path, relative to Database.Root
 	Hash     uint64 // Perceptual Image hash.
-	Distance uint   // Hamming Distance to search term.
+	Distance uint64 // Hamming Distance to search term.
 }
 
 // ResultSet holds search results, sortable by Hamming Distance.
@@ -51,9 +51,9 @@ func NewDatabase() *Database { return new(Database) }
 // Find finds all entries which have a Hamming Diance <= to the
 // specified distance with the given hash.
 // The list is sorted by relevance.
-func (d *Database) Find(hash uint64, distance uint) ResultSet {
+func (d *Database) Find(hash, distance uint64) ResultSet {
 	var rs ResultSet
-	var dist uint
+	var dist uint64
 
 	for _, e := range d.Entries {
 		dist = Distance(e.Hash, hash)
